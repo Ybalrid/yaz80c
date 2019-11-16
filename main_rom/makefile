@@ -1,2 +1,7 @@
-all:
-	echo "do nothing for now!"
+all: yaz80c.bin yaz80c.lbl
+
+yaz80c.bin: rom.asm
+	z80asm --label-prefix _ --verbose --verbose rom.asm --output yaz80c.bin
+
+yaz80c.lbl: rom.asm
+	z80asm --label-prefix _ rom.asm --label --output yaz80c.lbl
