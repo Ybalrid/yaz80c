@@ -1,4 +1,4 @@
-#yaz80c system rom
+# yaz80c system rom
 
 This folder contains the assembly listing of the main rom, and the files to build it.
 
