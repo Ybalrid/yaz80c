@@ -17,4 +17,5 @@ fzero:
 	ld	a, 0x42		;just a test
 	
 	
-
+	defs 0x1000-$
+include "mon.asm"
