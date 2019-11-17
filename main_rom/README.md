@@ -12,9 +12,15 @@ ROM is installed in the computer address space at location 0000h
 
 RAM starts at locaiton 8000h
 
+The ROM mainly contains various peices of software and routines to deal with the included hardware.
 
 ## Assembler
 
 The used assembler to build the ROM is the gnu z80asm from here https://www.nongnu.org/z80asm/
 
 The build system is based on GNU Make.
+
+## Monitor
+
+A machine language monitor called YbaMon will be put at address 1000h
+
