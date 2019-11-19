@@ -1,4 +1,6 @@
 all: yaz80c.bin yaz80c.lbl
+	cp yaz80c.bin ../../mame/roms/yaz80c/yaz80c.bin
+	
 
 yaz80c.bin: rom.asm mon.asm 
 	z80asm --label-prefix _ --verbose --verbose rom.asm --output yaz80c.bin
