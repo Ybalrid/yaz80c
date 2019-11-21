@@ -23,9 +23,9 @@ TERM_IBUF_SZ:	equ	0x80FF	; bytes used in serial input buffer
 TERM_IBUF_TMP:	equ	0x80FE
 
 org 0x0000
-CPU_RESET:					; code to be placed at reset vector
+CPU_RESET:				; code to be placed at reset vector
 	di				; disable all interupts until computer has finished boot
-	ld	SP, (STACK_START)	; put stack pointer at the very top of RAM
+	ld	SP, STACK_START		; put stack pointer at the very top of RAM
 	call	BOOTUP			; run hardware boot program
 	jp YBAMON			; Jumpt to one program installed in ROM: Ybalrd's monitor
 
