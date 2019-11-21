@@ -18,6 +18,7 @@ STACK_START:	equ	0xFFFF	; inital value of stack pointer
 
 ;; Serial input buffer
 TERM_IBUF:	equ	0x8000	; serial input buffer
+TERM_IBUF_MAX:	equ	254
 TERM_IBUF_SZ:	equ	0x80FF	; bytes used in serial input buffer
 TERM_IBUF_TMP:	equ	0x80FE
 
@@ -137,6 +138,7 @@ CLEAR_TERM_LOOP:
 	LD	(TERM_IBUF_SZ), A
 	ret
 
+
 BOOTUP:
 	call INIT_DART
 	ld	HL, BOOT_MSG_STR 
@@ -160,6 +162,7 @@ BELL:
 
 ;print the string pointed by HL
 PUTS:
+	push 	AF
 	push	HL
 PUTS_LOOP:
 	ld 	A, (HL)
@@ -170,11 +173,107 @@ PUTS_LOOP:
 	jp PUTS_LOOP
 PUTS_END:
 	POP	HL
+	POP	AF
 	ret
+
+;comapre strings pointed by HL and BC
+;this is really badly made and not optimal
+STRCMP:
+	ld	A, (HL)
+	cp	0
+	jp	Z, STRCMP_END
+	ld	D, A
+	ld	A, (BC)
+	cp	0
+	jp 	Z, STRCMP_END
+	inc	HL
+	inc	BC
+	cp	D
+	jp	NZ, STRCMP_DIFF
+	ld	A, 1
+	ld 	E, A
+	jp STRCMP
+STRCMP_END:
+	ld	A, E
+	ret
+STRCMP_DIFF:
+	ld	A, 0
+	ld	E, A
+	jp STRCMP_END
+	
+;HL and DE are preserved, nubmer stored in A
+ASCII_HEX_TO_N:
+	push DE
+	push HL
+	ld	A, (HL)
+	sub	48
+	cp	10
+	jp	C, ASCII_HEX_not_alpha0
+	sub 	'A'-'0'-10
+ASCII_HEX_not_alpha0:
+	SLA	A
+	SLA	A
+	SLA	A
+	SLA	A
+	ld	D, A
+	inc 	HL
+	ld	A, (HL)
+	sub	'0'
+	cp	10
+	jp	C, ASCII_HEX_not_alpha1
+	sub 	'A'-'0'-10
+ASCII_HEX_not_alpha1:
+	add	D
+	pop 	HL
+	pop	DE
+	ret
+
+;READ hex char from HL in BC
+READ_HEX:
+	ld 	B, 0
+	push 	HL
+	ld	D, 0
+	ld	E, 3
+	add	HL, DE
+	ld	A, (HL)
+	cp	0
+	pop 	HL
+	jp 	Z, READ_HEX_8bit
+	call ASCII_HEX_TO_N
+	ld	E, 2
+	ld	B, A
+	add	HL, DE
+READ_HEX_8bit:
+	call ASCII_HEX_TO_N
+	ld	C, A
+READ_HEX_end:
+	ret	
+
 
 ;print 8bit hex number in A
 PUT_HEX:
 ;TODO display hex number on terminal
+	push 	BC
+	push 	AF
+	srl	A
+	srl	A
+	srl	A
+	srl	A
+	add	'0'
+	cp	0x3A
+	jp 	C, PUT_HEX_not_alpha0
+	ADD 	'A'-'0'-10
+PUT_HEX_not_alpha0:
+	call PUTCHAR
+	pop 	AF
+	and	0x0F
+	add	'0'
+	cp 	0x3A
+	jp	C, PUT_HEX_not_alpha1
+	ADD 	'A'-'0'-10
+PUT_HEX_not_alpha1:
+	call PUTCHAR
+	pop 	BC
 	ret	
 
 ;print 16bit number in HL
@@ -195,6 +294,8 @@ RX_CHA_AVAIL:
 	ld	(TERM_IBUF_TMP), A	; Store character in temp storage
 	
 	cp	0x0D
+	jp	Z, RX_CHA_EXPLICT_ACCEPT
+	cp	0x0C
 	jp	Z, RX_CHA_EXPLICT_ACCEPT
 	cp 	0x08			;check if backspace
 	jp	Z, RX_CHA_BACKSPACE
