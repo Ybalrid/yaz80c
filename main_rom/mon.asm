@@ -97,6 +97,16 @@ ybamon_not_jump:
 	jp	command_end
 ybamon_not_put:
 
+	ld	HL, TERM_IBUF
+	ld	BC, ybamon_command_clear_str
+	call STRCMP
+	cp	1
+	jp NZ, ybamon_not_clear
+	ld	HL, ybamon_clear
+	call PUTS
+	jp	command_end
+ybamon_not_clear:
+
 	;this is the point where the input string did not result in any usable command
 	LD	HL, ybamon_crlf
 	call	PUTS
@@ -109,45 +119,6 @@ command_end:
 	call	PUTS
 	ret
 
-;DATA
-
-ybamon_welcome:
-db "Starting YbaMon, Ybalrid's z80 monitor\r\n"
-db "Type \"help\" to know what you can do\r\n",0
-
-ybamon_prompt:
-db "? ",0
-
-ybamon_crlf:
-db 0x0D, 0x0A, 0
-
-ybamon_ok:
-db "\r\nOK\r\n",0
-
-ybamon_synerr:
-db "SYN ERR\r\n", 0
-
-ybamon_command_string_array:
-ybamon_command_help_str:
-db "help",0
-ybamon_command_print_str:
-db "print",0
-ybamon_command_echo_str:
-db "echo",0
-ybamon_command_put_str:
-db "put",0
-ybamon_command_jump_str:
-db "jump",0
-
-ybamon_command_string_offset_ptr:
-db ybamon_command_string_array - ybamon_command_help_str
-db ybamon_command_string_array - ybamon_command_print_str
-db ybamon_command_string_array - ybamon_command_echo_str
-db ybamon_command_string_array - ybamon_command_put_str
-db ybamon_command_string_array - ybamon_command_jump_str
-
-ybamon_command_list_size:
-db 4
 
 ybamon_command_help:
 	ld 	HL, ybamon_help_txt
@@ -246,6 +217,51 @@ ybamon_put_read_loop:
 ybamon_put_end:
 	ret
 
+;DATA
+
+ybamon_welcome:
+db "Starting YbaMon, Ybalrid's z80 monitor\r\n"
+db "Type \"help\" to know what you can do\r\n",0
+
+ybamon_prompt:
+db "? ",0
+
+ybamon_crlf:
+db 0x0D, 0x0A, 0
+
+ybamon_ok:
+db "\r\nOK\r\n",0
+
+ybamon_synerr:
+db "SYN ERR\r\n", 0
+
+ybamon_clear:
+db 0x0C, 0x00
+
+ybamon_command_string_array:
+ybamon_command_help_str:
+db "help",0
+ybamon_command_print_str:
+db "print",0
+ybamon_command_echo_str:
+db "echo",0
+ybamon_command_put_str:
+db "put",0
+ybamon_command_jump_str:
+db "jump",0
+ybamon_command_clear_str:
+db "clear",0
+
+ybamon_command_string_offset_ptr:
+db ybamon_command_string_array - ybamon_command_help_str
+db ybamon_command_string_array - ybamon_command_print_str
+db ybamon_command_string_array - ybamon_command_echo_str
+db ybamon_command_string_array - ybamon_command_put_str
+db ybamon_command_string_array - ybamon_command_jump_str
+db ybamon_command_string_array - ybamon_command_clear_str
+
+ybamon_command_list_size:
+db 6
 ybamon_help_txt:
 db "\nShort manual of monitor:\r\n"
 db " help\r\n"
@@ -258,4 +274,6 @@ db " jump XXXX\r\n"
 db "  jump to XXXX and start executing arbitrary code from there! :-D\r\n"
 db " put XXXX\r\n"
 db "  Open PUT mode at address XXXX, serve to write memory. each char inputed after return is a nibble, exit with RETURN\r\n"
+db " clear\r\n"
+db "  Clear the screen / send \"Form Feed\" ASCII char to terminal"
 db 0
